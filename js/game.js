@@ -52,10 +52,17 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches a monster
 var reset = function () {
+        spawnHero();
+        spawnMonster();
+};
+
 // Spawn Hero
+var spawnHero = function () {
 	hero.x = canvas.width / 2;
 	hero.y = canvas.height / 2;
+};
 // Spawn Monster
+var spawnMonster = function () {
 	monster.x = 32 + (Math.random() * (canvas.width - 64));
 	monster.y = 32 + (Math.random() * (canvas.height - 64));
 };
@@ -113,7 +120,7 @@ var update = function (modifier) {
 	) {
 		++monstersCaught;
 		++hero.health;
-                reset();
+		spawnMonster();
 		if(monstersCaught >3){
 			monsterImage.src = "images/monster2.png";
 		}
