@@ -11,7 +11,7 @@ var bgImage = new Image();
 bgImage.onload = function () {
 	bgReady = true;
 };
-bgImage.src = "images/background.png";
+bgImage.src = "assets/images/background.png";
 
 // Hero image
 var heroReady = false;
@@ -19,7 +19,7 @@ var heroImage = new Image();
 heroImage.onload = function () {
 	heroReady = true;
 };
-heroImage.src = "images/hero.png";
+heroImage.src = "assets/images/hero.png";
 
 // Monster image
 var monsterReady = false;
@@ -27,7 +27,7 @@ var monsterImage = new Image();
 monsterImage.onload = function () {
 	monsterReady = true;
 };
-monsterImage.src = "images/monster.png";
+monsterImage.src = "assets/images/monster.png";
 
 
 
@@ -122,7 +122,7 @@ var update = function (modifier) {
 		++hero.health;
 		spawnMonster();
 		if(monstersCaught >3){
-			monsterImage.src = "images/monster2.png";
+			monsterImage.src = "assets/images/monster2.png";
 		}
 
 	}
