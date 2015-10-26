@@ -14,12 +14,12 @@ bgImage.onload = function () {
 bgImage.src = "assets/images/background.png";
 
 // Hero image
-var heroReady = false;
-var heroImage = new Image();
-heroImage.onload = function () {
-	heroReady = true;
-};
-heroImage.src = "assets/images/hero.png";
+//var heroReady = false;
+//var heroImage = new Image();
+//heroImage.onload = function () {
+//	heroReady = true;
+//};
+//heroImage.src = "assets/images/hero.png";
 
 // Monster image
 var monsterReady = false;
@@ -29,13 +29,78 @@ monsterImage.onload = function () {
 };
 monsterImage.src = "assets/images/monster.png";
 
+// Hero animation
+var heroReady = false;
+var heroImage = new Image();
+heroImage.onload = function () {
+	heroReady = true;
+};
+heroImage.src = "assets/images/herospritesheet.png"
 
+function sprite (options) {
+          
+  var that = {},
+    frameIndex = 0,
+    tickCount = 0,
+    ticksPerFrame = 16
+    numberOfFrames = 2;
+                
+  that.speed = options.speed;
+  that.x = options.x;
+  that.y = options.y;
+  that.context = options.context;
+  that.width = options.width;
+  that.height = options.height;
+  that.image = options.image;
+
+  that.update = function () {
+    tickCount += 1;
+
+    if (tickCount > ticksPerFrame) {
+      tickCount = 0;
+      // If the current frame index is in range
+      if (frameIndex < numberOfFrames - 1) {
+        // Go to next frame
+        frameIndex += 1;
+      } else {
+        frameIndex = 0;
+      }
+    }
+  }
+  
+  that.render = function () {
+    // Draw the animation
+
+    that.context.drawImage(
+      that.image,
+      frameIndex * that.width / numberOfFrames,
+      0,
+      that.width / numberOfFrames,
+      that.height,
+      that.x,
+      that.y,
+      that.width / numberOfFrames,
+      that.height);
+  };
+
+  return that;
+}
+
+var hero = sprite({
+  speed: 256,
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  context: canvas.getContext("2d"),
+  width: 88,
+  height: 88,
+  image: heroImage
+})
 
 // Game objects
-var hero = {
-	speed: 256, // movement in pixels per second
-	health: 100
-};
+//var hero = {
+//	speed: 256, // movement in pixels per second
+//	health: 100
+//};
 var monster = {};
 var monstersCaught = 0;
 
@@ -52,7 +117,7 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches a monster
 var reset = function () {
-        spawnHero();
+//        spawnHero();
         spawnMonster();
 };
 
@@ -134,9 +199,9 @@ var render = function () {
 		ctx.drawImage(bgImage, 0, 0);
 	}
 
-	if (heroReady) {
-		ctx.drawImage(heroImage, hero.x, hero.y);
-	}
+//	if (heroReady) {
+//		ctx.drawImage(heroImage, hero.x, hero.y);
+//	}
 
 	if (monsterReady) {
 		ctx.drawImage(monsterImage, monster.x, monster.y);
@@ -148,7 +213,7 @@ var render = function () {
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
 	ctx.fillText("Goblins caught: " + monstersCaught, 32, 32);
-	ctx.fillText("Health: " + hero.health, 32, 72);
+//	ctx.fillText("Health: " + hero.health, 32, 72);
 };
 
 // The main game loop
@@ -164,6 +229,8 @@ var main = function () {
 
 	// Request to do this again ASAP
 	requestAnimationFrame(main);
+        hero.update();
+        hero.render();
 };
 
 // Cross-browser support for requestAnimationFrame
