@@ -42,12 +42,12 @@ function sprite (options) {
   var that = {},
     frameIndex = 0,
     tickCount = 0,
-    ticksPerFrame = 16
-    numberOfFrames = 2;
+    ticksPerFrame = options.ticksPerFrame || 0;
+    numberOfFrames = options.numberOfFrames || 1;
                 
   that.speed = options.speed;
-  that.x = options.x;
-  that.y = options.y;
+  that.x = 0;
+  that.y = 0;
   that.context = options.context;
   that.width = options.width;
   that.height = options.height;
@@ -86,15 +86,20 @@ function sprite (options) {
   return that;
 }
 
-var hero = sprite({
-  speed: 256,
-  x: canvas.width / 2,
-  y: canvas.height / 2,
-  context: canvas.getContext("2d"),
-  width: 88,
-  height: 88,
-  image: heroImage
-})
+function spawnHero () {
+  
+  var hero = sprite({
+    speed: 256,
+    ticksPerFrame: 16,
+    numberOfFrames: 2,
+    context: canvas.getContext("2d"),
+    width: 88,
+    height: 88,
+    image: heroImage
+  })
+    hero.x = canvas.width / 2;
+    hero.y = canvas.height / 2;
+}
 
 // Game objects
 //var hero = {
