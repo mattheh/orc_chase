@@ -4,7 +4,7 @@ var ctx = canvas.getContext("2d");
 canvas.width = 512;
 canvas.height = 480;
 document.body.appendChild(canvas);
-
+var hero;
 // Background image
 var bgReady = false;
 var bgImage = new Image();
@@ -29,13 +29,6 @@ monsterImage.onload = function () {
 };
 monsterImage.src = "assets/images/monster.png";
 
-// Hero animation
-var heroReady = false;
-var heroImage = new Image();
-heroImage.onload = function () {
-	heroReady = true;
-};
-heroImage.src = "assets/images/herospritesheet.png"
 
 function sprite (options) {
           
@@ -87,8 +80,11 @@ function sprite (options) {
 }
 
 function spawnHero () {
-  
-  var hero = sprite({
+  // Create sprite sheet
+  var heroImage = new Image();
+
+  // Create sprite
+  hero = sprite({
     speed: 256,
     ticksPerFrame: 16,
     numberOfFrames: 2,
@@ -97,8 +93,9 @@ function spawnHero () {
     height: 88,
     image: heroImage
   })
-    hero.x = canvas.width / 2;
-    hero.y = canvas.height / 2;
+  hero.x = canvas.width / 2;
+  hero.y = canvas.height / 2;
+  heroImage.src = "assets/images/herospritesheet.png"
 }
 
 // Game objects
@@ -122,14 +119,8 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches a monster
 var reset = function () {
-//        spawnHero();
+        spawnHero();
         spawnMonster();
-};
-
-// Spawn Hero
-var spawnHero = function () {
-	hero.x = canvas.width / 2;
-	hero.y = canvas.height / 2;
 };
 // Spawn Monster
 var spawnMonster = function () {
