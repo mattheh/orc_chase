@@ -6,6 +6,7 @@ canvas.height = 480;
 document.body.appendChild(canvas);
 var hero;
 var orcs = [];
+var powerups = [];
 // Background image
 var bgReady = false;
 var bgImage = new Image();
@@ -57,8 +58,10 @@ function sprite (options) {
       this.height,
       this.x,
       this.y,
-      this.width / this.numberOfFrames,
-      this.height);
+      44,
+      44);
+      //this.width / this.numberOfFrames,
+      //this.height);
   };
 
   return this;
@@ -75,15 +78,37 @@ function heroObject () {
     numberOfFrames: 2,
     context: canvas.getContext("2d"),
     width: 88,
-    height: 88,
+    height: 44,
     image: heroImage
   });
   // Add hero-like attributes
   this.speed = 256;
   this.x = canvas.width / 2;
   this.y = canvas.height / 2;
+  this.powerUps = []
   
   return this;
+}
+
+function powerUpObject (id) {
+
+  var powerUpIndex;
+  var powerUpImage = new Image();
+  powerUpImage.src = "assets/images/powerupspritesheet.png"
+  powerUpIndex = powerups.length;
+
+  // Create Power Up sprite object
+  sprite.call(this, {
+    ticksPerFrame: 4,
+    numberOfFrames: 10,
+    context: canvas.getContext("2d"),
+    width: 5040,
+    height: 512,
+    image: powerUpImage
+  });  
+  this.x = 32 + (Math.random() * (canvas.width - 64));
+  this.y = 32 + (Math.random() * (canvas.height - 64));
+  this.id = id;
 }
 
 function orcObject () {
@@ -95,12 +120,12 @@ function orcObject () {
   orcIndex = orcs.length;
   
   // Create Orc sprite object
-  orcs[orcIndex] = sprite.call(this, {
+  sprite.call(this, {
     ticksPerFrame: 16,
     numberOfFrames: 2,
     context: canvas.getContext("2d"),
     width: 88,
-    height: 88,
+    height: 44,
     image: orcImage
   })
   // Add orc-like attributes
@@ -140,9 +165,11 @@ addEventListener("keyup", function (e) {
 var initialize = function () {
         hero = new heroObject();
         orcs[orcs.length] = new orcObject();
-        //spawnOrc();
-        //spawnOrc();
-        //spawnOrc();
+        orcs[orcs.length] = new orcObject();
+        orcs[orcs.length] = new orcObject();
+        powerups[powerups.length] = new powerUpObject(0);
+        powerups[powerups.length] = new powerUpObject(0);
+        powerups[powerups.length] = new powerUpObject(0);
 };
 
 // Update game objects
@@ -185,27 +212,62 @@ var updateGame = function (modifier) {
           orcs[i].x += orcs[i].speed;
         }
         
-        // Are they touching?
+        // Touching Orcs?
 	for (var i = 0; i < orcs.length; i += 1) {
-	  if (
-		hero.x <= (orcs[i].x + 32)
-		&& orcs[i].x <= (hero.x + 32)
-		&& hero.y <= (orcs[i].y + 32)
-		&& orcs[i].y <= (hero.y + 32)
+	  if ( touching ( hero, orcs[i] )
 	  ) {
 		++orcsCaught;
                 destroyOrc(orcs[i]);
-//                if (orcsCaught % 10 == 5) {
-//                  hoard += 1;
-//                }
-//                for (var j = 0; j < hoard; j +=1){
                 orcs[orcs.length] = new orcObject();
-//                }
           }
         }
-	//hero.health-= 1 
+
+        // Touching Powerup?
+	for (var i = 0; i < powerups.length; i += 1) {
+	  if ( touching ( hero, powerups[i] )
+	  ) {
+            switch ( powerups[i].id ) {
+              case 0:
+                hero.powerUps[hero.powerUps.length] = ["Slow", Date.now()];
+                orcSpeed("Down");
+                break;
+              case 1:
+                hero.powerUps[hero.powerUps.length] = ["Double", Date.now()];
+                break;
+            }
+		powerups[i] = null;
+                powerups.splice(i, 1);
+                break;
+          }
+        }
 	
 };
+
+function orcSpeed ( change ) {
+  switch ( change ) {
+    case "Down":
+      for (var i = 0; i < orcs.length; i += 1) {
+        orcs[i].speed = orcs[i].speed / 2;
+      }
+      break;
+    case "Up":
+      for (var i = 0; i < orcs.length; i += 1) {
+        orcs[i].speed = orcs[i].speed * 2;
+      }
+      break;
+  }
+}
+// Check if two objects are touching
+function touching (foo, bar) {
+  if (foo.x <= (bar.x + 32)
+      && bar.x <= (foo.x + 32)
+      && foo.y <= (bar.y + 32)
+      && bar.y <= (foo.y + 32)) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 // Draw everything
 function renderBackground () {
@@ -239,6 +301,10 @@ var main = function () {
         for (var i = 0; i < orcs.length; i +=1) {
           orcs[i].update();
           orcs[i].render();
+        }
+        for (var i = 0; i < powerups.length; i +=1) {
+          powerups[i].update();
+          powerups[i].render();
         }
 };
 
