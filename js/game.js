@@ -14,74 +14,76 @@ bgImage.onload = function () {
 };
 bgImage.src = "assets/images/background.png";
 
-
+function baseObject () {
+}
 
 function sprite (options) {
-          
-  var that = {},
-    frameIndex = 0,
-    tickCount = 0,
-    ticksPerFrame = options.ticksPerFrame || 0;
-    numberOfFrames = options.numberOfFrames || 1;
+  baseObject.call(this);         
+  this.frameIndex = 0;
+  this.tickCount = 0;
+  this.ticksPerFrame = options.ticksPerFrame || 0;
+  this.numberOfFrames = options.numberOfFrames || 1;
                 
-  that.speed = options.speed;
-  that.x = 0;
-  that.y = 0;
-  that.context = options.context;
-  that.width = options.width;
-  that.height = options.height;
-  that.image = options.image;
+  this.x = options.x || 0;
+  this.y = options.y || 0;
+  this.context = options.context;
+  this.width = options.width;
+  this.height = options.height;
+  this.image = options.image;
 
-  that.update = function () {
-    tickCount += 1;
+  
+  this.update = function () {
+    this.tickCount += 1;
 
-    if (tickCount > ticksPerFrame) {
-      tickCount = 0;
+    if (this.tickCount > this.ticksPerFrame) {
+      this.tickCount = 0;
       // If the current frame index is in range
-      if (frameIndex < numberOfFrames - 1) {
+      if (this.frameIndex < this.numberOfFrames - 1) {
         // Go to next frame
-        frameIndex += 1;
+        this.frameIndex += 1;
       } else {
-        frameIndex = 0;
+        this.frameIndex = 0;
       }
     }
   }
   
-  that.render = function () {
+  this.render = function () {
     // Draw the animation
-
-    that.context.drawImage(
-      that.image,
-      frameIndex * that.width / numberOfFrames,
+    this.context.drawImage(
+      this.image,
+      this.frameIndex * this.width / this.numberOfFrames,
       0,
-      that.width / numberOfFrames,
-      that.height,
-      that.x,
-      that.y,
-      that.width / numberOfFrames,
-      that.height);
+      this.width / this.numberOfFrames,
+      this.height,
+      this.x,
+      this.y,
+      this.width / this.numberOfFrames,
+      this.height);
   };
 
-  return that;
+  return this;
 }
 
 function spawnHero () {
   // Create sprite sheet
   var heroImage = new Image();
+  heroImage.src = "assets/images/herospritesheet.png"
 
-  // Create sprite
-  hero = sprite({
-    speed: 256,
+  // Create Hero sprite object
+  sprite.call(this, {
     ticksPerFrame: 16,
     numberOfFrames: 2,
     context: canvas.getContext("2d"),
     width: 88,
     height: 88,
     image: heroImage
-  })
-  hero.x = canvas.width / 2;
-  hero.y = canvas.height / 2;
-  heroImage.src = "assets/images/herospritesheet.png"
+  });
+  // Add hero-like attributes
+  this.speed = 256;
+  this.x = canvas.width / 2;
+  this.y = canvas.height / 2;
+  
+  return this;
 }
 
 function spawnOrc () {
@@ -89,11 +91,11 @@ function spawnOrc () {
   var orcIndex;
   // Create sprite sheet
   var orcImage = new Image();
+  orcImage.src = "assets/images/monsterspritesheet.png";
   orcIndex = orcs.length;
   
-  // Create sprite
-  orcs[orcIndex] = sprite({
-    speed: 256,
+  // Create Orc sprite object
+  orcs[orcIndex] = sprite.call(this, {
     ticksPerFrame: 16,
     numberOfFrames: 2,
     context: canvas.getContext("2d"),
@@ -101,10 +103,12 @@ function spawnOrc () {
     height: 88,
     image: orcImage
   })
-  orcs[orcIndex].x = 32 + (Math.random() * (canvas.width - 64));
-  orcs[orcIndex].y = 32 + (Math.random() * (canvas.height - 64));
+  // Add orc-like attributes
+  this.x = 32 + (Math.random() * (canvas.width - 64));
+  this.y = 32 + (Math.random() * (canvas.height - 64));
+  this.speed = (Math.floor(Math.random() * 6) + 1);
   
-  orcImage.src = "assets/images/monsterspritesheet.png";
+  return this;
 }
 
 function destroyOrc (orc) {
@@ -134,14 +138,15 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches an orc
 var initialize = function () {
-        spawnHero();
-        spawnOrc();
-        spawnOrc();
-        spawnOrc();
+        hero = new spawnHero();
+        orcs[orcs.length] = new spawnOrc();
+        //spawnOrc();
+        //spawnOrc();
+        //spawnOrc();
 };
 
 // Update game objects
-var update = function (modifier) {
+var updateGame = function (modifier) {
 	if (38 in keysDown) { // Player holding up
 		hero.y -= hero.speed * modifier;
 	}
@@ -177,7 +182,7 @@ var update = function (modifier) {
           } else if (orcs[i].x < 0) {
             orcs[i].x = canvas.width;
           }
-          orcs[i].x += 1;
+          orcs[i].x += orcs[i].speed;
         }
         
         // Are they touching?
@@ -203,7 +208,7 @@ var update = function (modifier) {
 };
 
 // Draw everything
-var render = function () {
+function renderBackground () {
 	if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0);
 	}
@@ -222,9 +227,8 @@ var main = function () {
 	var now = Date.now();
 	
 	var delta = now - then;
-
-	update(delta / 1000);
-	render();
+	updateGame(delta / 1000);
+	renderBackground();
 
 	then = now;
 
