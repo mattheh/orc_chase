@@ -64,7 +64,7 @@ function sprite (options) {
   return this;
 }
 
-function spawnHero () {
+function heroObject () {
   // Create sprite sheet
   var heroImage = new Image();
   heroImage.src = "assets/images/herospritesheet.png"
@@ -86,7 +86,7 @@ function spawnHero () {
   return this;
 }
 
-function spawnOrc () {
+function orcObject () {
   
   var orcIndex;
   // Create sprite sheet
@@ -138,8 +138,8 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches an orc
 var initialize = function () {
-        hero = new spawnHero();
-        orcs[orcs.length] = new spawnOrc();
+        hero = new heroObject();
+        orcs[orcs.length] = new orcObject();
         //spawnOrc();
         //spawnOrc();
         //spawnOrc();
@@ -199,7 +199,7 @@ var updateGame = function (modifier) {
 //                  hoard += 1;
 //                }
 //                for (var j = 0; j < hoard; j +=1){
-                spawnOrc();
+                orcs[orcs.length] = new orcObject();
 //                }
           }
         }
