@@ -4,27 +4,168 @@ var ctx = canvas.getContext("2d");
 canvas.width = 512;
 canvas.height = 480;
 document.body.appendChild(canvas);
+
+//===================================
+// VARIABLES
+//===================================
 var state = "Menu";
 var hero;
 var orcs = [];
 var powerups = [];
 var time;
-
-// Background image
+var orcsCaught = 0;
+var hoard;
+var keysDown = {};
 var bgReady = false;
-var bgImage = new Image();
-bgImage.onload = function () {
-	bgReady = true;
-};
-bgImage.src = "assets/images/background.png";
-
-// Menu image
 var menuReady = false;
-var menuImage = new Image();
-menuImage.onload = function () {
-	menuReady = true;
+var bgImage;
+var menuImage;
+//===================================
+// GAME - SETUP/UPDATE/RENDER
+//===================================
+
+/*-----Setup-----*/
+
+function loadAssets () {
+
+  // Background image
+  bgImage = new Image();
+  bgImage.onload = function () {
+  	bgReady = true;
+  };
+  bgImage.src = "assets/images/background.png";
+  
+  // Menu image
+  menuImage = new Image();
+  menuImage.onload = function () {
+  	menuReady = true;
+  };
+  menuImage.src = "assets/images/menu.png";
+  
+  addEventListener("keydown", function (e) {
+  	keysDown[e.keyCode] = true;
+  }, false);
+  
+  addEventListener("keyup", function (e) {
+  	delete keysDown[e.keyCode];
+  }, false);
+
+
+}
+
+/*-----Update-----*/
+
+function updateMenu () {
+	if (32 in keysDown) { // Player presses space
+		state = "Game";
+                initialize();
+	}
+}
+
+var updateGame = function (modifier) {
+	if (38 in keysDown) { // Player holding up
+		hero.y -= hero.speed * modifier;
+	}
+	if (40 in keysDown) { // Player holding down
+		hero.y += hero.speed * modifier;
+	}
+	if (37 in keysDown) { // Player holding left
+		hero.x -= hero.speed * modifier;
+	}
+	if (39 in keysDown) { // Player holding right
+		hero.x += hero.speed * modifier;
+	}
+	
+	if (hero.x > canvas.width) 
+	{
+		hero.x = 0;
+	}
+	if (hero.x < 0)
+	{
+		hero.x=canvas.width;
+	}	
+	if (hero.y > canvas.height)
+	{
+		hero.y=0;
+	}
+	if (hero.y<0)
+	{
+		hero.y=canvas.height;
+	}
+	for (var i = 0; i < orcs.length; i += 1) {
+          if (orcs[i].x > canvas.width) {
+            orcs[i].x = 0;
+          } else if (orcs[i].x < 0) {
+            orcs[i].x = canvas.width;
+          }
+          orcs[i].x += orcs[i].speed;
+        }
+        
+        // Touching Orcs?
+	for (var i = 0; i < orcs.length; i += 1) {
+	  if ( touching ( hero, orcs[i] )
+	  ) {
+		++orcsCaught;
+                //destroyOrc(orcs[i]);
+                orcs[i].destroy();
+                orcs[orcs.length] = new orcObject();
+          }
+        }
+
+        // Touching Powerup?
+	for (var i = 0; i < powerups.length; i += 1) {
+	  if ( touching ( hero, powerups[i] )
+	  ) {
+            switch ( powerups[i].id ) {
+              case 0:
+                hero.powerUps[hero.powerUps.length] = ["Slow", Date.now()];
+                orcs[0].slow();
+                break;
+              case 1:
+                hero.powerUps[hero.powerUps.length] = ["Double", Date.now()];
+                break;
+            }
+                powerups[i].destroy();
+                break;
+          }
+        }
 };
-menuImage.src = "assets/images/menu.png";
+
+/*-----Render-----*/
+
+function renderMenu () {
+	if (bgReady) {
+		ctx.drawImage(menuImage, 0, 0);
+	}
+
+	ctx.fillStyle = "rgb(250, 250, 250)";
+	ctx.font = "24px Helvetica";
+	ctx.textAlign = "left";
+	ctx.textBaseline = "top";
+	ctx.fillText("ORC CHASE", 170, 32);
+	ctx.fillText("SPACE key to start", 144, 144);
+	ctx.fillText("Last game score: " + orcsCaught, 144, 184);
+}
+
+function renderGame () {
+	if (bgReady) {
+		ctx.drawImage(bgImage, 0, 0);
+	}
+
+	// Score
+	ctx.fillStyle = "rgb(250, 250, 250)";
+	ctx.font = "24px Helvetica";
+	ctx.textAlign = "left";
+	ctx.textBaseline = "top";
+	ctx.fillText("Orcs caught: " + orcsCaught, 32, 72);
+	ctx.fillText("Time: " + time, 32, 32);
+
+
+};
+
+//===================================
+// GAME OBJECTS
+//===================================
 
 function baseObject () {
 }
@@ -71,8 +212,6 @@ function sprite (options) {
       this.y,
       44,
       44);
-      //this.width / this.numberOfFrames,
-      //this.height);
   };
 
   return this;
@@ -120,6 +259,16 @@ function powerUpObject (id) {
   this.x = 32 + (Math.random() * (canvas.width - 64));
   this.y = 32 + (Math.random() * (canvas.height - 64));
   this.id = id;
+
+  this.destroy = function () {
+    for (var i = 0; i < powerups.length; i += 1) {
+      if (powerups[i] === this) {
+        powerups[i] = null;
+        powerups.splice(i, 1);
+        break;
+      }
+    }
+  }
 }
 
 function orcObject () {
@@ -143,36 +292,30 @@ function orcObject () {
   this.x = 32 + (Math.random() * (canvas.width - 64));
   this.y = 32 + (Math.random() * (canvas.height - 64));
   this.speed = (Math.floor(Math.random() * 6) + 1);
+
+  this.destroy = function () {
+    for (var i = 0; i < orcs.length; i += 1) {
+      if (orcs[i] === this) {
+        orcs[i] = null;
+        orcs.splice(i, 1);
+        break;
+      }
+    }
+
+  }
+  this.slow = function () {
+    for (var i = 0; i < orcs.length; i += 1) {
+      orcs[i].speed = orcs[i].speed / 4;
+    }
+  }
   
   return this;
 }
 
-function destroyOrc (orc) {
-  for (var i = 0; i < orcs.length; i += 1) {
-    if (orcs[i] === orc) {
-      orcs[i] = null;
-      orcs.splice(i, 1);
-      break;
-    }
-  }
-}
+//===================================
+// GAME FUNCTIONS
+//===================================
 
-// Game objects
-var orcsCaught = 0;
-var hoard = 1;
-
-// Handle keyboard controls
-var keysDown = {};
-
-addEventListener("keydown", function (e) {
-	keysDown[e.keyCode] = true;
-}, false);
-
-addEventListener("keyup", function (e) {
-	delete keysDown[e.keyCode];
-}, false);
-
-// Reset the game when the player catches an orc
 var initialize = function () {
         resetGame();
         hero = new heroObject();
@@ -184,7 +327,6 @@ var initialize = function () {
         time = 10;
 
         var timer = setInterval(function(){
-//	ctx.fillText("Time: " + time, 32, 32);
           time--;
           if (time == 0) {
             state = "Menu";
@@ -199,95 +341,6 @@ var resetGame = function () {
         orcsCaught = 0;
 }
 
-
-// Update game objects
-var updateGame = function (modifier) {
-	if (38 in keysDown) { // Player holding up
-		hero.y -= hero.speed * modifier;
-	}
-	if (40 in keysDown) { // Player holding down
-		hero.y += hero.speed * modifier;
-	}
-	if (37 in keysDown) { // Player holding left
-		hero.x -= hero.speed * modifier;
-	}
-	if (39 in keysDown) { // Player holding right
-		hero.x += hero.speed * modifier;
-	}
-	
-	if (hero.x > canvas.width) 
-	{
-		hero.x = 0;
-	}
-	if (hero.x < 0)
-	{
-		hero.x=canvas.width;
-	}	
-	if (hero.y > canvas.height)
-	{
-		hero.y=0;
-	}
-	if (hero.y<0)
-	{
-		hero.y=canvas.height;
-	}
-	for (var i = 0; i < orcs.length; i += 1) {
-          if (orcs[i].x > canvas.width) {
-            orcs[i].x = 0;
-          } else if (orcs[i].x < 0) {
-            orcs[i].x = canvas.width;
-          }
-          orcs[i].x += orcs[i].speed;
-        }
-        
-        // Touching Orcs?
-	for (var i = 0; i < orcs.length; i += 1) {
-	  if ( touching ( hero, orcs[i] )
-	  ) {
-		++orcsCaught;
-                destroyOrc(orcs[i]);
-                orcs[orcs.length] = new orcObject();
-          }
-        }
-
-        // Touching Powerup?
-	for (var i = 0; i < powerups.length; i += 1) {
-	  if ( touching ( hero, powerups[i] )
-	  ) {
-            switch ( powerups[i].id ) {
-              case 0:
-                hero.powerUps[hero.powerUps.length] = ["Slow", Date.now()];
-                orcSpeed("Down");
-                break;
-              case 1:
-                hero.powerUps[hero.powerUps.length] = ["Double", Date.now()];
-                break;
-            }
-		powerups[i] = null;
-                powerups.splice(i, 1);
-                break;
-          }
-        }
-
-        // Update Time
-
-	
-};
-
-function orcSpeed ( change ) {
-  switch ( change ) {
-    case "Down":
-      for (var i = 0; i < orcs.length; i += 1) {
-        orcs[i].speed = orcs[i].speed / 4;
-      }
-      break;
-    case "Up":
-      for (var i = 0; i < orcs.length; i += 1) {
-        orcs[i].speed = orcs[i].speed * 4;
-      }
-      break;
-  }
-}
 // Check if two objects are touching
 function touching (foo, bar) {
   if (foo.x <= (bar.x + 32)
@@ -300,41 +353,6 @@ function touching (foo, bar) {
   }
 }
 
-// Draw everything
-function renderGame () {
-	if (bgReady) {
-		ctx.drawImage(bgImage, 0, 0);
-	}
-
-	// Score
-	ctx.fillStyle = "rgb(250, 250, 250)";
-	ctx.font = "24px Helvetica";
-	ctx.textAlign = "left";
-	ctx.textBaseline = "top";
-	ctx.fillText("Orcs caught: " + orcsCaught, 32, 72);
-	ctx.fillText("Time: " + time, 32, 32);
-
-
-};
-
-function updateMenu () {
-	if (32 in keysDown) { // Player presses space
-		state = "Game";
-                initialize();
-	}
-}
-function renderMenu () {
-	if (bgReady) {
-		ctx.drawImage(menuImage, 0, 0);
-	}
-
-	ctx.fillStyle = "rgb(250, 250, 250)";
-	ctx.font = "24px Helvetica";
-	ctx.textAlign = "left";
-	ctx.textBaseline = "top";
-	ctx.fillText("SPACE key to start", 144, 144);
-	ctx.fillText("Last game score: " + orcsCaught, 144, 184);
-}
 // The menu loop
 var menuLoop = function () {
         updateMenu();
@@ -391,4 +409,5 @@ requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame
 
 // Let's play this game!
 var then = Date.now();
+loadAssets();
 menuLoop();
