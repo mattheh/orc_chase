@@ -7,6 +7,7 @@ document.body.appendChild(canvas);
 var hero;
 var orcs = [];
 var powerups = [];
+var time = 20;
 // Background image
 var bgReady = false;
 var bgImage = new Image();
@@ -169,7 +170,15 @@ var initialize = function () {
         orcs[orcs.length] = new orcObject();
         powerups[powerups.length] = new powerUpObject(0);
         powerups[powerups.length] = new powerUpObject(0);
-        powerups[powerups.length] = new powerUpObject(0);
+
+        setInterval(function(){
+//	ctx.fillText("Time: " + time, 32, 32);
+          time--;
+          if (time == 0) {
+           // Game Over 
+	  ctx.fillText("GAME OVER", 72, 72);
+          }
+        },1000);
 };
 
 // Update game objects
@@ -240,6 +249,9 @@ var updateGame = function (modifier) {
                 break;
           }
         }
+
+        // Update Time
+
 	
 };
 
@@ -247,12 +259,12 @@ function orcSpeed ( change ) {
   switch ( change ) {
     case "Down":
       for (var i = 0; i < orcs.length; i += 1) {
-        orcs[i].speed = orcs[i].speed / 2;
+        orcs[i].speed = orcs[i].speed / 4;
       }
       break;
     case "Up":
       for (var i = 0; i < orcs.length; i += 1) {
-        orcs[i].speed = orcs[i].speed * 2;
+        orcs[i].speed = orcs[i].speed * 4;
       }
       break;
   }
@@ -280,8 +292,10 @@ function renderBackground () {
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Orcs caught: " + orcsCaught, 32, 32);
-//	ctx.fillText("Health: " + hero.health, 32, 72);
+	ctx.fillText("Orcs caught: " + orcsCaught, 32, 72);
+	ctx.fillText("Time: " + time, 32, 32);
+
+
 };
 
 // The main game loop
