@@ -4,10 +4,12 @@ var ctx = canvas.getContext("2d");
 canvas.width = 512;
 canvas.height = 480;
 document.body.appendChild(canvas);
+var state = "Menu";
 var hero;
 var orcs = [];
 var powerups = [];
-var time = 20;
+var time;
+
 // Background image
 var bgReady = false;
 var bgImage = new Image();
@@ -15,6 +17,14 @@ bgImage.onload = function () {
 	bgReady = true;
 };
 bgImage.src = "assets/images/background.png";
+
+// Menu image
+var menuReady = false;
+var menuImage = new Image();
+menuImage.onload = function () {
+	menuReady = true;
+};
+menuImage.src = "assets/images/menu.png";
 
 function baseObject () {
 }
@@ -164,22 +174,31 @@ addEventListener("keyup", function (e) {
 
 // Reset the game when the player catches an orc
 var initialize = function () {
+        resetGame();
         hero = new heroObject();
         orcs[orcs.length] = new orcObject();
         orcs[orcs.length] = new orcObject();
         orcs[orcs.length] = new orcObject();
         powerups[powerups.length] = new powerUpObject(0);
         powerups[powerups.length] = new powerUpObject(0);
+        time = 10;
 
-        setInterval(function(){
+        var timer = setInterval(function(){
 //	ctx.fillText("Time: " + time, 32, 32);
           time--;
           if (time == 0) {
-           // Game Over 
-	  ctx.fillText("GAME OVER", 72, 72);
+            state = "Menu";
+            clearInterval(timer);
           }
         },1000);
 };
+
+var resetGame = function () {
+        orcs.length = 0;
+        powerups.length = 0;
+        orcsCaught = 0;
+}
+
 
 // Update game objects
 var updateGame = function (modifier) {
@@ -282,7 +301,7 @@ function touching (foo, bar) {
 }
 
 // Draw everything
-function renderBackground () {
+function renderGame () {
 	if (bgReady) {
 		ctx.drawImage(bgImage, 0, 0);
 	}
@@ -298,18 +317,51 @@ function renderBackground () {
 
 };
 
+function updateMenu () {
+	if (32 in keysDown) { // Player presses space
+		state = "Game";
+                initialize();
+	}
+}
+function renderMenu () {
+	if (bgReady) {
+		ctx.drawImage(menuImage, 0, 0);
+	}
+
+	ctx.fillStyle = "rgb(250, 250, 250)";
+	ctx.font = "24px Helvetica";
+	ctx.textAlign = "left";
+	ctx.textBaseline = "top";
+	ctx.fillText("SPACE key to start", 144, 144);
+	ctx.fillText("Last game score: " + orcsCaught, 144, 184);
+}
+// The menu loop
+var menuLoop = function () {
+        updateMenu();
+        renderMenu();
+        switch (state) {
+          case "Menu":
+	    // Switch to menu state
+      	    requestAnimationFrame(menuLoop);
+            break;
+
+          case "Game":
+	    // Request to do this again ASAP
+      	    requestAnimationFrame(gameLoop);
+            break;
+        }
+}
+
 // The main game loop
-var main = function () {
+var gameLoop = function () {
 	var now = Date.now();
 	
 	var delta = now - then;
 	updateGame(delta / 1000);
-	renderBackground();
+	renderGame();
 
 	then = now;
 
-	// Request to do this again ASAP
-	requestAnimationFrame(main);
         hero.update();
         hero.render();
         for (var i = 0; i < orcs.length; i +=1) {
@@ -320,6 +372,17 @@ var main = function () {
           powerups[i].update();
           powerups[i].render();
         }
+        switch (state) {
+          case "Menu":
+	    // Switch to menu state
+      	    requestAnimationFrame(menuLoop);
+            break;
+
+          case "Game":
+	    // Request to do this again ASAP
+      	    requestAnimationFrame(gameLoop);
+            break;
+        }
 };
 
 // Cross-browser support for requestAnimationFrame
@@ -328,5 +391,4 @@ requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame
 
 // Let's play this game!
 var then = Date.now();
-initialize();
-main();
+menuLoop();
