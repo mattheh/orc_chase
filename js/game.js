@@ -123,6 +123,9 @@ var updateGame = function (modifier) {
                 break;
               case 1:
                 hero.powerUps[hero.powerUps.length] = ["Double", Date.now()];
+                  orcs[orcs.length] = new orcObject();
+                  orcs[orcs.length] = new orcObject();
+                  orcs[orcs.length] = new orcObject();
                 break;
             }
                 powerups[i].destroy();
@@ -244,7 +247,15 @@ function powerUpObject (id) {
 
   var powerUpIndex;
   var powerUpImage = new Image();
-  powerUpImage.src = "assets/images/powerupspritesheet.png"
+  switch (id) {
+    case 0:
+      powerUpImage.src = "assets/images/slowspritesheet.png"
+      break;
+    case 1:
+      powerUpImage.src = "assets/images/doublespritesheet.png"
+      break;
+  }
+
   powerUpIndex = powerups.length;
 
   // Create Power Up sprite object
@@ -324,6 +335,7 @@ var initialize = function () {
         orcs[orcs.length] = new orcObject();
         powerups[powerups.length] = new powerUpObject(0);
         powerups[powerups.length] = new powerUpObject(0);
+        powerups[powerups.length] = new powerUpObject(1);
         time = 10;
 
         var timer = setInterval(function(){
